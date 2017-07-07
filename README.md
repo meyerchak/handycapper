@@ -16,7 +16,7 @@ and converts each race to JSON or CSV (the latter containing basic individual Sp
 
 Handycapper is a [Spring Boot](https://projects.spring.io/spring-boot/) (Java) application. 
 
-1. Install [Java 8](https://www.java.com/en/download/help/download_options.xml) if not already (check by running `java -version` in your terminal or command prompt)
+1. Install [Java 8](https://www.java.com/en/download/help/download_options.xml), if not already installed (check by running `java -version` in your terminal or command prompt)
 1. Download the JAR file from [the releases section](https://github.com/robinhowlett/handycapper/releases).
 1. From the location where you downloaded the JAR file, run `java -jar handycapper-0.0.1-SNAPSHOT.jar`
 1. Open [http://localhost:8080](http://localhost:8080) in your browser
