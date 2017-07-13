@@ -6,11 +6,11 @@ A simple application for demonstrating [chart-parser](https://github.com/robinho
 
 An extremely simple web application that uploads a sample Equibase PDF chart file:
 
-![before](https://i.imgur.com/qidVJim.png)
+![before](https://i.imgur.com/MieDMwZ.png)
 
-and converts each race to JSON or CSV (the latter containing basic individual Split time information) with a helpful file name:
+and converts each race to JSON, CSV (containing basic individual Split time information) or XLSX (Excel) with a helpful file name:
 
-![after](https://i.imgur.com/iMxjKI0.png)
+![after](https://i.imgur.com/GZrVUt0.png)
 
 ## Quick Start
 
