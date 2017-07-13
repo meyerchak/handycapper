@@ -46,10 +46,21 @@ public class ChartUploadController {
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         Resource file = storageService.loadAsResource(filename);
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                .body(file);
+        String mediaType;
+
+        ResponseEntity.BodyBuilder ok = ResponseEntity.ok();
+
+        if (filename.endsWith("xlsx")) {
+            ok = ok.header(HttpHeaders.CONTENT_TYPE,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+        } else if (filename.endsWith("csv")) {
+            ok = ok.header(HttpHeaders.CONTENT_TYPE, "text/csv");
+        } else {
+            ok = ok.header(HttpHeaders.CONTENT_TYPE, "application/json");
+        }
+
+        return ok.body(file);
     }
 
     @PostMapping("/")

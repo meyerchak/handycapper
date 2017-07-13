@@ -43,7 +43,7 @@ public class Summary {
                 row.put("name", typeBreedName.getName());
 
                 row.put("distance", TWO_DECIMALS.format((double) raceResult
-                        .getDistanceSurfaceTrackRecord().getRaceDistance().getValue() / 660));
+                        .getDistanceSurfaceTrackRecord().getRaceDistance().getFeet() / 660));
                 row.put("surface", raceResult.getDistanceSurfaceTrackRecord().getSurface());
                 row.put("trackCondition",
                         raceResult.getDistanceSurfaceTrackRecord().getTrackCondition());

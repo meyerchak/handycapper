@@ -3,7 +3,9 @@ package com.robinhowlett.handycapper.storage;
 import com.robinhowlett.chartparser.ChartParser;
 import com.robinhowlett.chartparser.charts.pdf.RaceResult;
 import com.robinhowlett.handycapper.examples.csv.Splits;
+import com.robinhowlett.handycapper.xlsx.ThreeTypeSummary;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -47,36 +49,66 @@ public class FileSystemStorageService implements StorageService {
 
             List<RaceResult> raceResults = chartParser.parse(convertMultipartFileToFile(chart));
 
-            for (RaceResult raceResult : raceResults) {
-                String type = raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed()
-                        .getType().replaceAll("\\s+", "-").toLowerCase();
+            if (action.equalsIgnoreCase("xlsx")) {
+                if (raceResults != null && !raceResults.isEmpty()) {
+                    RaceResult raceResult = raceResults.get(0);
+                    String type = raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed()
+                            .getType().replaceAll("\\s+", "-").toLowerCase();
 
-                String raceName =
-                        raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed().getName();
-                if (raceName != null) {
-                    type = String.format("%s-%s", type.toLowerCase(),
-                            raceName.replaceAll("\\s+", "-")
-                                    .replaceAll("\\.", "").toLowerCase());
+                    String raceName =
+                            raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed()
+                                    .getName();
+                    if (raceName != null) {
+                        type = String.format("%s-%s", type.toLowerCase(),
+                                raceName.replaceAll("\\s+", "-")
+                                        .replaceAll("\\.", "").toLowerCase());
+                    }
+
+                    String fileName = String.format("%s_%s_summary.%s",
+                            raceResult.getTrack().getCode(),
+                            raceResult.getRaceDate(),
+                            action.toLowerCase());
+
+                    File file = new File(this.rootLocation.resolve(fileName).toUri());
+
+                    XSSFWorkbook workbook = ThreeTypeSummary.create(raceResults);
+                    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                        workbook.write(outputStream);
+                    }
                 }
+            } else {
+                for (RaceResult raceResult : raceResults) {
+                    String type = raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed()
+                            .getType().replaceAll("\\s+", "-").toLowerCase();
 
-                String fileName = String.format("%s_%s_result-r%d_%.2ff_%s_%s.%s",
-                        raceResult.getTrack().getCode(),
-                        raceResult.getRaceDate(),
-                        raceResult.getRaceNumber(),
-                        ((double) raceResult.getDistanceSurfaceTrackRecord().getRaceDistance()
-                                .getValue() / 660),
-                        raceResult.getDistanceSurfaceTrackRecord().getSurface().toLowerCase(),
-                        type,
-                        action.toLowerCase());
+                    String raceName =
+                            raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed()
+                                    .getName();
+                    if (raceName != null) {
+                        type = String.format("%s-%s", type.toLowerCase(),
+                                raceName.replaceAll("\\s+", "-")
+                                        .replaceAll("\\.", "").toLowerCase());
+                    }
 
-                File file = new File(this.rootLocation.resolve(fileName).toUri());
+                    String fileName = String.format("%s_%s_result-r%d_%.2ff_%s_%s.%s",
+                            raceResult.getTrack().getCode(),
+                            raceResult.getRaceDate(),
+                            raceResult.getRaceNumber(),
+                            ((double) raceResult.getDistanceSurfaceTrackRecord().getRaceDistance()
+                                    .getFeet() / 660),
+                            raceResult.getDistanceSurfaceTrackRecord().getSurface().toLowerCase(),
+                            type,
+                            action.toLowerCase());
 
-                if (action.equalsIgnoreCase("json")) {
-                    ChartParser.getObjectMapper()
-                            .writerWithDefaultPrettyPrinter().writeValue(file, raceResult);
-                } else if (action.equalsIgnoreCase("csv")) {
-                    String csv = Splits.createCSV(ChartParser.getCsvMapper(), raceResult);
-                    Files.write(Paths.get(file.toURI()), csv.getBytes(UTF_8));
+                    File file = new File(this.rootLocation.resolve(fileName).toUri());
+
+                    if (action.equalsIgnoreCase("json")) {
+                        ChartParser.getObjectMapper()
+                                .writerWithDefaultPrettyPrinter().writeValue(file, raceResult);
+                    } else if (action.equalsIgnoreCase("csv")) {
+                        String csv = Splits.createCSV(ChartParser.getCsvMapper(), raceResult);
+                        Files.write(Paths.get(file.toURI()), csv.getBytes(UTF_8));
+                    }
                 }
             }
         } catch (IOException e) {
