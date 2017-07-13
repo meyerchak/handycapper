@@ -20,7 +20,7 @@ Handycapper is a [Spring Boot](https://projects.spring.io/spring-boot/) (Java) a
 1. Download the JAR file from [the releases section](https://github.com/robinhowlett/handycapper/releases).
 1. From the location where you downloaded the JAR file, run `java -jar handycapper-0.0.1-SNAPSHOT.jar`
 1. Open [http://localhost:8080](http://localhost:8080) in your browser
-1. Upload a PDF result chart and select either JSON or CSV
+1. Upload a PDF result chart and select either JSON, CSV, or XLSX (Excel)
 
 _It is recommended to install a JSON-viewer browser extension (e.g. [JSON Formatter](https://chrome.google.com/webstore/detail/json-formatter/bcjindcccaagfpapjjmafapmmgkkhgoa?hl=en)) for easier viewing of the generated JSON content_
 
