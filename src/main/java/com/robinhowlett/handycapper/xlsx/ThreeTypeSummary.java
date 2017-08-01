@@ -1,6 +1,5 @@
 package com.robinhowlett.handycapper.xlsx;
 
-import com.robinhowlett.chartparser.ChartParser;
 import com.robinhowlett.chartparser.charts.pdf.DistanceSurfaceTrackRecord.RaceDistance;
 import com.robinhowlett.chartparser.charts.pdf.RaceResult;
 import com.robinhowlett.chartparser.charts.pdf.RaceTypeNameBlackTypeBreed;
@@ -13,7 +12,6 @@ import com.robinhowlett.chartparser.points_of_call.PointsOfCall.PointOfCall;
 import com.robinhowlett.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition;
 import com.robinhowlett.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition
         .TotalLengthsBehind;
-import com.robinhowlett.handycapper.examples.PDFtoJSON;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -22,11 +20,6 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
@@ -62,101 +55,104 @@ public class ThreeTypeSummary {
 
             createResultsHeaderRow(sheet, row++, col, raceResult);
 
-            for (Starter starter : raceResult.getStarters()) {
-                int startersColNum = 0;
-                XSSFRow starterRow = sheet.createRow(row++);
-                RaceDistance raceDistance =
-                        raceResult.getDistanceSurfaceTrackRecord().getRaceDistance();
+            if (raceResult.getStarters() != null) {
+                for (Starter starter : raceResult.getStarters()) {
+                    int startersColNum = 0;
+                    XSSFRow starterRow = sheet.createRow(row++);
+                    RaceDistance raceDistance =
+                            raceResult.getDistanceSurfaceTrackRecord().getRaceDistance();
 
-                startersColNum = fillStandardCols(raceResult, starter, startersColNum,
-                        starterRow, raceDistance);
+                    startersColNum = fillStandardCols(raceResult, starter, startersColNum,
+                            starterRow, raceDistance);
 
-                // weight
-                asNumber(starterRow, startersColNum++, starter.getWeight().getWeightCarried());
+                    // weight
+                    asNumber(starterRow, startersColNum++, starter.getWeight().getWeightCarried());
 
-                // runUp
-                asNumber(starterRow, startersColNum++, raceDistance.getRunUp());
+                    // runUp
+                    asNumber(starterRow, startersColNum++, raceDistance.getRunUp());
 
-                // # of runners
-                asNumber(starterRow, startersColNum++, raceResult.getNumberOfRunners());
+                    // # of runners
+                    asNumber(starterRow, startersColNum++, raceResult.getNumberOfRunners());
 
-                // last raced track
-                LastRaced lastRaced = starter.getLastRaced();
-                asText(starterRow, startersColNum++, (lastRaced != null ?
-                        lastRaced.getLastRacePerformance().getTrack().getCode() : null));
+                    // last raced track
+                    LastRaced lastRaced = starter.getLastRaced();
+                    asText(starterRow, startersColNum++, (lastRaced != null ?
+                            lastRaced.getLastRacePerformance().getTrack().getCode() : null));
 
-                // days since
-                asNumber(starterRow, startersColNum++, (lastRaced != null ?
-                        lastRaced.getDaysSince() : null));
+                    // days since
+                    asNumber(starterRow, startersColNum++, (lastRaced != null ?
+                            lastRaced.getDaysSince() : null));
 
-                // individual fractionals
-                List<Fractional> fractionals = starter.getFractionals();
-                if (fractionals != null) {
-                    for (int j = 0; j < fractionals.size(); j++) {
-                        Fractional fractional = fractionals.get(j);
-                        Long millis = fractional.getMillis();
-                        asNumber(starterRow, startersColNum++,
-                                (millis != null ? (double) millis / 1000 : null))
-                                .setCellStyle(threeDigitFormat);
+                    // individual fractionals
+                    List<Fractional> fractionals = starter.getFractionals();
+                    if (fractionals != null) {
+                        for (int j = 0; j < fractionals.size(); j++) {
+                            Fractional fractional = fractionals.get(j);
+                            Long millis = fractional.getMillis();
+                            asNumber(starterRow, startersColNum++,
+                                    (millis != null ? (double) millis / 1000 : null))
+                                    .setCellStyle(threeDigitFormat);
+                        }
                     }
-                }
 
-                // individual splits
-                List<Split> splits = starter.getSplits();
-                if (splits != null) {
-                    for (int j = 0; j < splits.size(); j++) {
-                        Split split = splits.get(j);
-                        Long millis = split.getMillis();
-                        asNumber(starterRow, startersColNum++,
-                                (millis != null ? (double) millis / 1000 : null))
-                                .setCellStyle(threeDigitFormat);
+                    // individual splits
+                    List<Split> splits = starter.getSplits();
+                    if (splits != null) {
+                        for (int j = 0; j < splits.size(); j++) {
+                            Split split = splits.get(j);
+                            Long millis = split.getMillis();
+                            asNumber(starterRow, startersColNum++,
+                                    (millis != null ? (double) millis / 1000 : null))
+                                    .setCellStyle(threeDigitFormat);
+                        }
                     }
-                }
 
-                // points of call
-                List<PointOfCall> pointsOfCall = starter.getPointsOfCall();
-                if (pointsOfCall != null) {
-                    // position
-                    for (int j = 0; j < pointsOfCall.size(); j++) {
-                        PointOfCall pointOfCall = pointsOfCall.get(j);
-                        RelativePosition relativePosition = pointOfCall.getRelativePosition();
-                        asNumber(starterRow, startersColNum++,
-                                (relativePosition != null ? relativePosition.getPosition() : null));
+                    // points of call
+                    List<PointOfCall> pointsOfCall = starter.getPointsOfCall();
+                    if (pointsOfCall != null) {
+                        // position
+                        for (int j = 0; j < pointsOfCall.size(); j++) {
+                            PointOfCall pointOfCall = pointsOfCall.get(j);
+                            RelativePosition relativePosition = pointOfCall.getRelativePosition();
+                            asNumber(starterRow, startersColNum++,
+                                    (relativePosition != null ? relativePosition.getPosition() :
+                                            null));
+                        }
+                        // lengths behind
+                        for (int j = 0; j < pointsOfCall.size(); j++) {
+                            PointOfCall pointOfCall = pointsOfCall.get(j);
+                            RelativePosition relativePosition = pointOfCall.getRelativePosition();
+                            TotalLengthsBehind totalLengthsBehind =
+                                    relativePosition.getTotalLengthsBehind();
+                            asNumber(starterRow, startersColNum++,
+                                    (relativePosition != null && totalLengthsBehind != null) ?
+                                            totalLengthsBehind.getLengths() : 0)
+                                    .setCellStyle(twoDigitFormat);
+                        }
                     }
-                    // lengths behind
-                    for (int j = 0; j < pointsOfCall.size(); j++) {
-                        PointOfCall pointOfCall = pointsOfCall.get(j);
-                        RelativePosition relativePosition = pointOfCall.getRelativePosition();
-                        TotalLengthsBehind totalLengthsBehind =
-                                relativePosition.getTotalLengthsBehind();
-                        asNumber(starterRow, startersColNum++,
-                                (relativePosition != null && totalLengthsBehind != null) ?
-                                        totalLengthsBehind.getLengths() : 0)
-                                .setCellStyle(twoDigitFormat);
-                    }
-                }
 
-                // leader fractionals
-                List<Fractional> leaderFractionals = raceResult.getFractionals();
-                if (leaderFractionals != null) {
-                    for (int j = 0; j < leaderFractionals.size(); j++) {
-                        Fractional fractional = leaderFractionals.get(j);
-                        Long millis = fractional.getMillis();
-                        asNumber(starterRow, startersColNum++,
-                                (millis != null ? (double) millis / 1000 : null))
-                                .setCellStyle(threeDigitFormat);
+                    // leader fractionals
+                    List<Fractional> leaderFractionals = raceResult.getFractionals();
+                    if (leaderFractionals != null) {
+                        for (int j = 0; j < leaderFractionals.size(); j++) {
+                            Fractional fractional = leaderFractionals.get(j);
+                            Long millis = fractional.getMillis();
+                            asNumber(starterRow, startersColNum++,
+                                    (millis != null ? (double) millis / 1000 : null))
+                                    .setCellStyle(threeDigitFormat);
+                        }
                     }
-                }
 
-                // leader splits
-                List<Split> leaderSplits = raceResult.getSplits();
-                if (leaderSplits != null) {
-                    for (int j = 0; j < leaderSplits.size(); j++) {
-                        Split split = leaderSplits.get(j);
-                        Long millis = split.getMillis();
-                        asNumber(starterRow, startersColNum++,
-                                (millis != null ? (double) millis / 1000 : null))
-                                .setCellStyle(threeDigitFormat);
+                    // leader splits
+                    List<Split> leaderSplits = raceResult.getSplits();
+                    if (leaderSplits != null) {
+                        for (int j = 0; j < leaderSplits.size(); j++) {
+                            Split split = leaderSplits.get(j);
+                            Long millis = split.getMillis();
+                            asNumber(starterRow, startersColNum++,
+                                    (millis != null ? (double) millis / 1000 : null))
+                                    .setCellStyle(threeDigitFormat);
+                        }
                     }
                 }
             }
@@ -260,49 +256,53 @@ public class ThreeTypeSummary {
 
         List<Starter> winners = raceResult.getWinners();
 
-        Starter winner = winners.get(0);
+        if (winners.size() > 0) {
+            Starter winner = winners.get(0);
 
-        // individual fractionals
-        List<Fractional> fractionals = winner.getFractionals();
-        for (int j = 0; j < fractionals.size(); j++) {
-            Fractional fractional = fractionals.get(j);
-            CellUtil.createCell(headerRow, col++, "Indiv " + fractional.getText());
-        }
+            // individual fractionals
+            if (winner.getFractionals() != null) {
+                List<Fractional> fractionals = winner.getFractionals();
+                for (int j = 0; j < fractionals.size(); j++) {
+                    Fractional fractional = fractionals.get(j);
+                    CellUtil.createCell(headerRow, col++, "Indiv " + fractional.getText());
+                }
 
-        // splits
-        List<Split> splits = winner.getSplits();
-        for (int j = 0; j < splits.size(); j++) {
-            Split split = splits.get(j);
-            CellUtil.createCell(headerRow, col++, "Indiv " + split.getText());
-        }
-
-        // points of call
-        List<PointOfCall> pointsOfCall = winner.getPointsOfCall();
-        if (pointsOfCall != null) {
-            // position
-            for (int j = 0; j < pointsOfCall.size(); j++) {
-                PointOfCall pointOfCall = pointsOfCall.get(j);
-                CellUtil.createCell(headerRow, col++, "Pos " + pointOfCall.getText());
+                // splits
+                List<Split> splits = winner.getSplits();
+                for (int j = 0; j < splits.size(); j++) {
+                    Split split = splits.get(j);
+                    CellUtil.createCell(headerRow, col++, "Indiv " + split.getText());
+                }
             }
-            // lengths behind
-            for (int j = 0; j < pointsOfCall.size(); j++) {
-                PointOfCall pointOfCall = pointsOfCall.get(j);
-                CellUtil.createCell(headerRow, col++, "LenBhd " + pointOfCall.getText());
+
+            // points of call
+            List<PointOfCall> pointsOfCall = winner.getPointsOfCall();
+            if (pointsOfCall != null) {
+                // position
+                for (int j = 0; j < pointsOfCall.size(); j++) {
+                    PointOfCall pointOfCall = pointsOfCall.get(j);
+                    CellUtil.createCell(headerRow, col++, "Pos " + pointOfCall.getText());
+                }
+                // lengths behind
+                for (int j = 0; j < pointsOfCall.size(); j++) {
+                    PointOfCall pointOfCall = pointsOfCall.get(j);
+                    CellUtil.createCell(headerRow, col++, "LenBhd " + pointOfCall.getText());
+                }
             }
-        }
 
-        // leader fractionals
-        List<Fractional> leaderFractionals = winner.getFractionals();
-        for (int j = 0; j < leaderFractionals.size(); j++) {
-            Fractional fractional = leaderFractionals.get(j);
-            CellUtil.createCell(headerRow, col++, "Leader " + fractional.getText());
-        }
+            // leader fractionals
+            List<Fractional> leaderFractionals = raceResult.getFractionals();
+            for (int j = 0; j < leaderFractionals.size(); j++) {
+                Fractional fractional = leaderFractionals.get(j);
+                CellUtil.createCell(headerRow, col++, "Leader " + fractional.getText());
+            }
 
-        // leader splits
-        List<Split> leaderSplits = winner.getSplits();
-        for (int j = 0; j < leaderSplits.size(); j++) {
-            Split split = leaderSplits.get(j);
-            CellUtil.createCell(headerRow, col++, "Leader " + split.getText());
+            // leader splits
+            List<Split> leaderSplits = raceResult.getSplits();
+            for (int j = 0; j < leaderSplits.size(); j++) {
+                Split split = leaderSplits.get(j);
+                CellUtil.createCell(headerRow, col++, "Leader " + split.getText());
+            }
         }
 
         return headerRow;
@@ -436,8 +436,9 @@ public class ThreeTypeSummary {
 
                 // payoff
                 asNumber(raceRow, raceColNum++,
-                        (wager.isPresent() ? ((double) wager.get().getPayoff() / wager.get()
-                                .getUnit()) * 2 : null))
+                        (wager.isPresent() && wager.get().getPayoff() != null ?
+                                ((double) wager.get().getPayoff() / wager.get().getUnit()) * 2 :
+                                null))
                         .setCellStyle(twoDigitCommaFormat);
 
                 // pool
@@ -512,13 +513,14 @@ public class ThreeTypeSummary {
     }
 
     private static void validate(RaceResult raceResult) {
-        if (raceResult == null || raceResult.getStarters() == null) {
-            throw new RuntimeException("RaceResult instance or Starters List is null");
+        if (raceResult.getCancellation().isCancelled()) {
+            System.err.println("Race was cancelled - spreadsheet will not be created");
         }
 
-        if (raceResult.getCancellation().isCancelled()) {
-            throw new RuntimeException("Race was cancelled - spreadsheet will not be created");
+        if (raceResult == null || raceResult.getStarters() == null) {
+//            throw new RuntimeException("RaceResult instance or Starters List is null");
         }
+
     }
 
 }
